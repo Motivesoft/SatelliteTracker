@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
 )
 
 type InfoStructure struct {
@@ -18,7 +19,18 @@ type TLEStructure struct {
 }
 
 func main() {
-	raw, err := performTle(25544)
+	if len(os.Args) < 2 {
+		fmt.Println("Missing satellite ID")
+		return
+	}
+
+	satelliteId, err := strconv.Atoi(os.Args[1])
+	if err != nil {
+		fmt.Printf("Invalid satellite ID: '%s'. %v\n", os.Args[1], err)
+		return
+	}
+
+	raw, err := performTle(satelliteId)
 	if err != nil {
 		fmt.Println("Error performing TLE:", err)
 		return
@@ -39,7 +51,6 @@ func performTle(satelliteId int) ([]byte, error) {
 	// If debug, read from file
 	data, err := os.ReadFile(fmt.Sprintf("./examples/tle-%d.json", satelliteId))
 	if err != nil {
-		fmt.Println("Error reading file:", err)
 		return nil, err
 	}
 
