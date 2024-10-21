@@ -13,9 +13,10 @@ import (
 )
 
 type InfoStructure struct {
-	SatelliteName     string `json:"satname"`
 	SatelliteId       int    `json:"satid"`
+	SatelliteName     string `json:"satname"`
 	TransactionsCount int    `json:"transactionscount"`
+	PassesCount       int    `json:"passescount"`
 }
 
 type TLEStructure struct {
@@ -23,7 +24,33 @@ type TLEStructure struct {
 	TLE  string        `json:"tle"`
 }
 
+type PassStructure struct {
+	StartAz        float64 `json:"startAz"`
+	StartAzCompass string  `json:"startAzCompass"`
+	StartEl        float64 `json:"startEl"`
+	StartUTC       int64   `json:"startUTC"`
+	MaxAz          float64 `json:"maxAz"`
+	MaxAzCompass   string  `json:"maxAzCompass"`
+	MaxEl          float64 `json:"maxEl"`
+	MaxUTC         int64   `json:"maxUTC"`
+	EndAz          float64 `json:"endAz"`
+	EndAzCompass   string  `json:"endAzCompass"`
+	EndEl          float64 `json:"endEl"`
+	EndUTC         int64   `json:"endUTC"`
+	Mag            float64 `json:"mag"`
+	Duration       int     `json:"duration"`
+}
+
+type VisualPassesStructure struct {
+	Info   InfoStructure   `json:"info"`
+	Passes []PassStructure `json:"passes"`
+}
+
+var DEBUG bool
+
 func main() {
+	DEBUG = true
+
 	if len(os.Args) < 2 {
 		fmt.Println("Missing satellite ID")
 		return
@@ -34,6 +61,8 @@ func main() {
 		fmt.Printf("Invalid satellite ID: '%s'. %v\n", os.Args[1], err)
 		return
 	}
+
+	// Two Line Elements
 
 	raw, err := performTle(satelliteId)
 	if err != nil {
@@ -50,9 +79,53 @@ func main() {
 	}
 
 	printTle(tleStruct)
+
+	// Visual Passes
+
+	raw, err = performVisualPasses(satelliteId)
+	if err != nil {
+		fmt.Println("Error performing Visual Passes:", err)
+		return
+	}
+
+	// Unmarshal the JSON data into the struct
+	var visualPassesStruct VisualPassesStructure
+	err = json.Unmarshal(raw, &visualPassesStruct)
+	if err != nil {
+		fmt.Println("Error unmarshaling JSON:", err)
+		return
+	}
+
+	printVisualPasses(visualPassesStruct)
+}
+
+func performVisualPasses(satelliteId int) ([]byte, error) {
+	if DEBUG {
+		return performVisualPassesDebug(satelliteId)
+	}
+
+	return performVisualPassesLive(satelliteId)
+}
+
+func performVisualPassesDebug(satelliteId int) ([]byte, error) {
+	// If debug, read from file
+	data, err := os.ReadFile(fmt.Sprintf("./examples/visualpasses-%d.json", satelliteId))
+	if err != nil {
+		return nil, err
+	}
+
+	return data, err
+}
+
+func performVisualPassesLive(satelliteId int) ([]byte, error) {
+	return nil, fmt.Errorf("not implemented")
 }
 
 func performTle(satelliteId int) ([]byte, error) {
+	if DEBUG {
+		return performTleDebug(satelliteId)
+	}
+
 	return performTleLive(satelliteId)
 }
 
@@ -74,14 +147,14 @@ func performTleLive(satelliteId int) ([]byte, error) {
 	queryParams := url.Values{}
 
 	// Read apiKey and anything else relevant from a local file
-	headers, err := readHeadersFromDotfile(".env")
+	env, err := readHeadersFromDotfile(".env")
 	if err != nil {
 		fmt.Println("Failed to read headers from .env:", err)
 		return nil, err
 	}
 
 	// Put all values read from the dotfile as header entries
-	for key, value := range headers {
+	for key, value := range env {
 		queryParams.Add(key, value)
 	}
 
@@ -116,11 +189,36 @@ func performTleLive(satelliteId int) ([]byte, error) {
 	return body, nil
 }
 
-func printTle(tleStruct TLEStructure) {
-	fmt.Printf("Satellite name     : %s\n", tleStruct.Info.SatelliteName)
-	fmt.Printf("Satellite ID       : %d\n", tleStruct.Info.SatelliteId)
-	fmt.Printf("Transactions Count : %d\n", tleStruct.Info.TransactionsCount)
-	fmt.Printf("TLE                : \n%s\n", tleStruct.TLE)
+func printTle(structure TLEStructure) {
+	fmt.Printf("Satellite name     : %s\n", structure.Info.SatelliteName)
+	fmt.Printf("Satellite ID       : %d\n", structure.Info.SatelliteId)
+	fmt.Printf("Transactions Count : %d\n", structure.Info.TransactionsCount)
+	fmt.Printf("TLE                : \n%s\n", structure.TLE)
+}
+
+func printVisualPasses(structure VisualPassesStructure) {
+	fmt.Printf("Satellite name     : %s\n", structure.Info.SatelliteName)
+	fmt.Printf("Satellite ID       : %d\n", structure.Info.SatelliteId)
+	fmt.Printf("Transactions Count : %d\n", structure.Info.TransactionsCount)
+	fmt.Printf("Passes Count       : %d\n", structure.Info.PassesCount)
+
+	for i := 0; i < structure.Info.PassesCount; i++ {
+		fmt.Printf("Pass %2d:\n", i)
+		fmt.Printf("  StartUTC       : %d\n", structure.Passes[i].StartUTC)
+		fmt.Printf("  StartAz        : %f\n", structure.Passes[i].StartAz)
+		fmt.Printf("  StartAzCompass : %s\n", structure.Passes[i].StartAzCompass)
+		fmt.Printf("  StartEl        : %f\n", structure.Passes[i].StartEl)
+		fmt.Printf("  MaxUTC         : %d\n", structure.Passes[i].MaxUTC)
+		fmt.Printf("  MaxAz          : %f\n", structure.Passes[i].MaxAz)
+		fmt.Printf("  MaxAzCompass   : %s\n", structure.Passes[i].MaxAzCompass)
+		fmt.Printf("  MaxEl          : %f\n", structure.Passes[i].MaxEl)
+		fmt.Printf("  EndUTC         : %d\n", structure.Passes[i].EndUTC)
+		fmt.Printf("  EndAz          : %f\n", structure.Passes[i].EndAz)
+		fmt.Printf("  EndAzCompass   : %s\n", structure.Passes[i].EndAzCompass)
+		fmt.Printf("  EndEl          : %f\n", structure.Passes[i].EndEl)
+		fmt.Printf("  Mag            : %f\n", structure.Passes[i].Mag)
+		fmt.Printf("  Duration       : %d\n", structure.Passes[i].Duration)
+	}
 }
 
 // Read a dotfile, formatted as a property file, into a string map
