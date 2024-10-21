@@ -10,6 +10,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type InfoStructure struct {
@@ -205,20 +206,20 @@ func printVisualPasses(structure VisualPassesStructure) {
 
 	for i := 0; i < structure.Info.PassesCount; i++ {
 		fmt.Printf("Pass %2d:\n", i)
-		fmt.Printf("  StartUTC         : %d\n", structure.Passes[i].StartUTC)
+		fmt.Printf("  StartUTC         : %s\n", utcSecondsToLocalTime(structure.Passes[i].StartUTC))
 		fmt.Printf("  StartAz          : %f\n", structure.Passes[i].StartAz)
 		fmt.Printf("  StartAzCompass   : %s\n", structure.Passes[i].StartAzCompass)
 		fmt.Printf("  StartEl          : %f\n", structure.Passes[i].StartEl)
-		fmt.Printf("  MaxUTC           : %d\n", structure.Passes[i].MaxUTC)
+		fmt.Printf("  MaxUTC           : %s\n", utcSecondsToLocalTime(structure.Passes[i].MaxUTC))
 		fmt.Printf("  MaxAz            : %f\n", structure.Passes[i].MaxAz)
 		fmt.Printf("  MaxAzCompass     : %s\n", structure.Passes[i].MaxAzCompass)
 		fmt.Printf("  MaxEl            : %f\n", structure.Passes[i].MaxEl)
-		fmt.Printf("  EndUTC           : %d\n", structure.Passes[i].EndUTC)
+		fmt.Printf("  EndUTC           : %s\n", utcSecondsToLocalTime(structure.Passes[i].EndUTC))
 		fmt.Printf("  EndAz            : %f\n", structure.Passes[i].EndAz)
 		fmt.Printf("  EndAzCompass     : %s\n", structure.Passes[i].EndAzCompass)
 		fmt.Printf("  EndEl            : %f\n", structure.Passes[i].EndEl)
 		fmt.Printf("  Mag              : %f\n", structure.Passes[i].Mag)
-		fmt.Printf("  Duration         : %d\n", structure.Passes[i].Duration)
+		fmt.Printf("  Duration         : %d (%s)\n", structure.Passes[i].Duration, secondsToDuration(int64(structure.Passes[i].Duration)))
 		fmt.Printf("  Start Visibility : %d\n", structure.Passes[i].StartVisibility)
 	}
 }
@@ -255,4 +256,30 @@ func readHeadersFromDotfile(filename string) (map[string]string, error) {
 	}
 
 	return headers, nil
+}
+
+func secondsToDuration(totalSeconds int64) string {
+	minutes := totalSeconds / 60
+	seconds := totalSeconds % 60
+	return fmt.Sprintf("%dm %2ds", minutes, seconds)
+}
+
+func secondsToTime(seconds int64) time.Time {
+	return time.Unix(seconds, 0).UTC()
+}
+
+func utcSecondsToLocalTime(utcSeconds int64) string {
+	// Convert to time.Time and then to local time
+	t := secondsToTime(utcSeconds).Local()
+
+	// fmt.Println(t.Format(time.RFC822))
+	// fmt.Println(t.Format(time.RFC822Z))
+	// fmt.Println(t.Format(time.RFC850))
+	// fmt.Println(t.Format(time.RFC1123))
+	// fmt.Println(t.Format(time.RFC1123Z))
+	// fmt.Println(t.Format(time.RFC3339))
+	// fmt.Println(t.Format(time.RFC3339Nano))
+
+	// Format and print the time
+	return t.Format(time.RFC822)
 }
