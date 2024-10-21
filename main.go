@@ -25,20 +25,21 @@ type TLEStructure struct {
 }
 
 type PassStructure struct {
-	StartAz        float64 `json:"startAz"`
-	StartAzCompass string  `json:"startAzCompass"`
-	StartEl        float64 `json:"startEl"`
-	StartUTC       int64   `json:"startUTC"`
-	MaxAz          float64 `json:"maxAz"`
-	MaxAzCompass   string  `json:"maxAzCompass"`
-	MaxEl          float64 `json:"maxEl"`
-	MaxUTC         int64   `json:"maxUTC"`
-	EndAz          float64 `json:"endAz"`
-	EndAzCompass   string  `json:"endAzCompass"`
-	EndEl          float64 `json:"endEl"`
-	EndUTC         int64   `json:"endUTC"`
-	Mag            float64 `json:"mag"`
-	Duration       int     `json:"duration"`
+	StartAz         float64 `json:"startAz"`
+	StartAzCompass  string  `json:"startAzCompass"`
+	StartEl         float64 `json:"startEl"`
+	StartUTC        int64   `json:"startUTC"`
+	MaxAz           float64 `json:"maxAz"`
+	MaxAzCompass    string  `json:"maxAzCompass"`
+	MaxEl           float64 `json:"maxEl"`
+	MaxUTC          int64   `json:"maxUTC"`
+	EndAz           float64 `json:"endAz"`
+	EndAzCompass    string  `json:"endAzCompass"`
+	EndEl           float64 `json:"endEl"`
+	EndUTC          int64   `json:"endUTC"`
+	Mag             float64 `json:"mag"`
+	Duration        int     `json:"duration"`
+	StartVisibility int64   `json:"startVisibility"`
 }
 
 type VisualPassesStructure struct {
@@ -204,20 +205,21 @@ func printVisualPasses(structure VisualPassesStructure) {
 
 	for i := 0; i < structure.Info.PassesCount; i++ {
 		fmt.Printf("Pass %2d:\n", i)
-		fmt.Printf("  StartUTC       : %d\n", structure.Passes[i].StartUTC)
-		fmt.Printf("  StartAz        : %f\n", structure.Passes[i].StartAz)
-		fmt.Printf("  StartAzCompass : %s\n", structure.Passes[i].StartAzCompass)
-		fmt.Printf("  StartEl        : %f\n", structure.Passes[i].StartEl)
-		fmt.Printf("  MaxUTC         : %d\n", structure.Passes[i].MaxUTC)
-		fmt.Printf("  MaxAz          : %f\n", structure.Passes[i].MaxAz)
-		fmt.Printf("  MaxAzCompass   : %s\n", structure.Passes[i].MaxAzCompass)
-		fmt.Printf("  MaxEl          : %f\n", structure.Passes[i].MaxEl)
-		fmt.Printf("  EndUTC         : %d\n", structure.Passes[i].EndUTC)
-		fmt.Printf("  EndAz          : %f\n", structure.Passes[i].EndAz)
-		fmt.Printf("  EndAzCompass   : %s\n", structure.Passes[i].EndAzCompass)
-		fmt.Printf("  EndEl          : %f\n", structure.Passes[i].EndEl)
-		fmt.Printf("  Mag            : %f\n", structure.Passes[i].Mag)
-		fmt.Printf("  Duration       : %d\n", structure.Passes[i].Duration)
+		fmt.Printf("  StartUTC         : %d\n", structure.Passes[i].StartUTC)
+		fmt.Printf("  StartAz          : %f\n", structure.Passes[i].StartAz)
+		fmt.Printf("  StartAzCompass   : %s\n", structure.Passes[i].StartAzCompass)
+		fmt.Printf("  StartEl          : %f\n", structure.Passes[i].StartEl)
+		fmt.Printf("  MaxUTC           : %d\n", structure.Passes[i].MaxUTC)
+		fmt.Printf("  MaxAz            : %f\n", structure.Passes[i].MaxAz)
+		fmt.Printf("  MaxAzCompass     : %s\n", structure.Passes[i].MaxAzCompass)
+		fmt.Printf("  MaxEl            : %f\n", structure.Passes[i].MaxEl)
+		fmt.Printf("  EndUTC           : %d\n", structure.Passes[i].EndUTC)
+		fmt.Printf("  EndAz            : %f\n", structure.Passes[i].EndAz)
+		fmt.Printf("  EndAzCompass     : %s\n", structure.Passes[i].EndAzCompass)
+		fmt.Printf("  EndEl            : %f\n", structure.Passes[i].EndEl)
+		fmt.Printf("  Mag              : %f\n", structure.Passes[i].Mag)
+		fmt.Printf("  Duration         : %d\n", structure.Passes[i].Duration)
+		fmt.Printf("  Start Visibility : %d\n", structure.Passes[i].StartVisibility)
 	}
 }
 
