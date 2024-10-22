@@ -120,7 +120,65 @@ func performVisualPassesDebug(satelliteId int) ([]byte, error) {
 }
 
 func performVisualPassesLive(satelliteId int) ([]byte, error) {
-	return nil, fmt.Errorf("not implemented")
+	// Base URL of the API
+	baseURL := "https://api.n2yo.com/rest/v1/satellite"
+
+	// Read apiKey and anything else relevant from a local file
+	env, err := readHeadersFromDotfile(".env")
+	if err != nil {
+		return nil, fmt.Errorf("failed to read header information: %v", err)
+	}
+
+	// Read locatiton information from a local file
+	location, err := readHeadersFromDotfile(".location")
+	if err != nil {
+		return nil, fmt.Errorf("failed to read location detail: %v", err)
+	}
+
+	// Read preferences from a local file
+	preferences, err := readHeadersFromDotfile(".preferences")
+	if err != nil {
+		return nil, fmt.Errorf("failed to read preferences: %v", err)
+	}
+
+	// Query parameters - will be used to add the apiKey and maybe other details
+	queryParams := url.Values{}
+
+	// Put all values read from the dotfile as header entries
+	for key, value := range env {
+		queryParams.Add(key, value)
+	}
+
+	// Construct the full URL
+	fullURL := fmt.Sprintf("%s/visualpasses/%d/%s/%s/%s/%s/%s?%s", baseURL, satelliteId, location["latitude"], location["longitude"], location["altitude"], preferences["seconds"], preferences["minimum_visibility"], queryParams.Encode())
+
+	if strings.Contains(fullURL, "//") {
+		return nil, fmt.Errorf("some location or preference information is missing")
+	}
+
+	// Create a new HTTP client
+	client := &http.Client{}
+
+	// Create a new GET request
+	req, err := http.NewRequest("GET", fullURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("error creating request: %v", err)
+	}
+
+	// Send the request
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("error sending request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	// Read the response body
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("error reading response: %v", err)
+	}
+
+	return body, nil
 }
 
 func performTle(satelliteId int) ([]byte, error) {
@@ -151,8 +209,7 @@ func performTleLive(satelliteId int) ([]byte, error) {
 	// Read apiKey and anything else relevant from a local file
 	env, err := readHeadersFromDotfile(".env")
 	if err != nil {
-		fmt.Println("Failed to read headers from .env:", err)
-		return nil, err
+		return nil, fmt.Errorf("failed to read headers: %v", err)
 	}
 
 	// Put all values read from the dotfile as header entries
@@ -169,23 +226,20 @@ func performTleLive(satelliteId int) ([]byte, error) {
 	// Create a new GET request
 	req, err := http.NewRequest("GET", fullURL, nil)
 	if err != nil {
-		fmt.Printf("Error creating request: %v\n", err)
-		return nil, err
+		return nil, fmt.Errorf("error creating request: %v", err)
 	}
 
 	// Send the request
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Printf("Error sending request: %v\n", err)
-		return nil, err
+		return nil, fmt.Errorf("error sending request: %v", err)
 	}
 	defer resp.Body.Close()
 
 	// Read the response body
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Printf("Error reading response: %v\n", err)
-		return nil, err
+		return nil, fmt.Errorf("error reading response: %v", err)
 	}
 
 	return body, nil
