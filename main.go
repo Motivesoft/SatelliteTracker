@@ -281,6 +281,7 @@ func printVisualPasses(structure VisualPassesStructure) {
 		fmt.Printf("  End               : %s\n", utcSecondsToLocalTime(structure.Passes[i].EndUTC))
 		fmt.Printf("  End Azimuth       : %.2f\u00B0 (%s)\n", structure.Passes[i].EndAz, structure.Passes[i].EndAzCompass)
 		fmt.Printf("  End Elevation     : %.2f\u00B0\n", structure.Passes[i].EndEl)
+		fmt.Println()
 	}
 }
 
