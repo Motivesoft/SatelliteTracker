@@ -49,9 +49,17 @@ type VisualPassesStructure struct {
 }
 
 var DEBUG bool
+var baseURL string
 
 func main() {
-	DEBUG = true
+	// Whether running in disconnect mode with offline data
+	DEBUG = false
+
+	runTLE := false
+	runVisualPasses := true
+
+	// Base URL of the API
+	baseURL = "https://api.n2yo.com/rest/v1/satellite"
 
 	if len(os.Args) < 2 {
 		fmt.Println("Missing satellite ID")
@@ -66,39 +74,43 @@ func main() {
 
 	// Two Line Elements
 
-	raw, err := performTle(satelliteId)
-	if err != nil {
-		fmt.Println("Error performing TLE:", err)
-		return
-	}
+	if runTLE {
+		raw, err := performTle(satelliteId)
+		if err != nil {
+			fmt.Println("Error performing TLE:", err)
+			return
+		}
 
-	// Unmarshal the JSON data into the struct
-	var tleStruct TLEStructure
-	err = json.Unmarshal(raw, &tleStruct)
-	if err != nil {
-		fmt.Println("Error unmarshaling JSON:", err)
-		return
-	}
+		// Unmarshal the JSON data into the struct
+		var tleStruct TLEStructure
+		err = json.Unmarshal(raw, &tleStruct)
+		if err != nil {
+			fmt.Println("Error unmarshaling JSON:", err)
+			return
+		}
 
-	printTle(tleStruct)
+		printTle(tleStruct)
+	}
 
 	// Visual Passes
 
-	raw, err = performVisualPasses(satelliteId)
-	if err != nil {
-		fmt.Println("Error performing Visual Passes:", err)
-		return
-	}
+	if runVisualPasses {
+		raw, err := performVisualPasses(satelliteId)
+		if err != nil {
+			fmt.Println("Error performing Visual Passes:", err)
+			return
+		}
 
-	// Unmarshal the JSON data into the struct
-	var visualPassesStruct VisualPassesStructure
-	err = json.Unmarshal(raw, &visualPassesStruct)
-	if err != nil {
-		fmt.Println("Error unmarshaling JSON:", err)
-		return
-	}
+		// Unmarshal the JSON data into the struct
+		var visualPassesStruct VisualPassesStructure
+		err = json.Unmarshal(raw, &visualPassesStruct)
+		if err != nil {
+			fmt.Println("Error unmarshaling JSON:", err)
+			return
+		}
 
-	printVisualPasses(visualPassesStruct)
+		printVisualPasses(visualPassesStruct)
+	}
 }
 
 func performVisualPasses(satelliteId int) ([]byte, error) {
@@ -120,9 +132,6 @@ func performVisualPassesDebug(satelliteId int) ([]byte, error) {
 }
 
 func performVisualPassesLive(satelliteId int) ([]byte, error) {
-	// Base URL of the API
-	baseURL := "https://api.n2yo.com/rest/v1/satellite"
-
 	// Read apiKey and anything else relevant from a local file
 	env, err := readHeadersFromDotfile(".env")
 	if err != nil {
@@ -150,17 +159,17 @@ func performVisualPassesLive(satelliteId int) ([]byte, error) {
 	}
 
 	// Construct the full URL
-	fullURL := fmt.Sprintf("%s/visualpasses/%d/%s/%s/%s/%s/%s?%s", baseURL, satelliteId, location["latitude"], location["longitude"], location["altitude"], preferences["seconds"], preferences["minimum_visibility"], queryParams.Encode())
+	fullURL := fmt.Sprintf("/visualpasses/%d/%s/%s/%s/%s/%s?%s", satelliteId, location["latitude"], location["longitude"], location["altitude"], preferences["days"], preferences["minimum_visibility"], queryParams.Encode())
 
 	if strings.Contains(fullURL, "//") {
-		return nil, fmt.Errorf("some location or preference information is missing")
+		return nil, fmt.Errorf("some location or preference information is missing: %s", fullURL)
 	}
 
 	// Create a new HTTP client
 	client := &http.Client{}
 
 	// Create a new GET request
-	req, err := http.NewRequest("GET", fullURL, nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s%s", baseURL, fullURL), nil)
 	if err != nil {
 		return nil, fmt.Errorf("error creating request: %v", err)
 	}
@@ -200,9 +209,6 @@ func performTleDebug(satelliteId int) ([]byte, error) {
 }
 
 func performTleLive(satelliteId int) ([]byte, error) {
-	// Base URL of the API
-	baseURL := "https://api.n2yo.com/rest/v1/satellite"
-
 	// Query parameters - will be used to add the apiKey and maybe other details
 	queryParams := url.Values{}
 
