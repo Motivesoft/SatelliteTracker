@@ -55,7 +55,8 @@ func main() {
 	// Whether running in disconnect mode with offline data
 	DEBUG = false
 
-	runTLE := false
+	// Which data to obtain
+	runTLE := true
 	runVisualPasses := true
 
 	// Base URL of the API

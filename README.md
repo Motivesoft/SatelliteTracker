@@ -12,6 +12,13 @@ My likely endgame is to develop this to notify me on a daily basis what satellit
 
 I do not intend to do anything pretty like mapping satellite information onto a map of the world.
 
+## Satellite IDs
+
+| Satellite Name | Satellite ID | Notes |
+|-|-|-|
+| ISS | 25544 | International Space Station |
+| CSS (TIANHE-1) | 48274 | Tiangong Chinese Space Station |
+
 ## Code changes
 Currently the code can perform a small collection of the N2YO API operations and is being build incrementally. If you want to experiment, check out the code and see how its built so that you can tweak it to your own aims.
 
