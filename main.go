@@ -56,7 +56,7 @@ func main() {
 	DEBUG = false
 
 	// Which data to obtain
-	runTLE := true
+	runTLE := false
 	runVisualPasses := true
 
 	// Base URL of the API
@@ -67,50 +67,53 @@ func main() {
 		return
 	}
 
-	satelliteId, err := strconv.Atoi(os.Args[1])
-	if err != nil {
-		fmt.Printf("Invalid satellite ID: '%s'. %v\n", os.Args[1], err)
-		return
-	}
-
-	// Two Line Elements
-
-	if runTLE {
-		raw, err := performTle(satelliteId)
+	for i := 0; i < len(os.Args); i++ {
+		satelliteId, err := strconv.Atoi(os.Args[i])
 		if err != nil {
-			fmt.Println("Error performing TLE:", err)
-			return
+			fmt.Printf("Invalid satellite ID: '%s'. %v\n", os.Args[i], err)
+			continue
 		}
 
-		// Unmarshal the JSON data into the struct
-		var tleStruct TLEStructure
-		err = json.Unmarshal(raw, &tleStruct)
-		if err != nil {
-			fmt.Println("Error unmarshaling JSON:", err)
-			return
+		// Two Line Elements
+
+		if runTLE {
+			raw, err := performTle(satelliteId)
+			if err != nil {
+				fmt.Println("Error performing TLE:", err)
+				continue
+			}
+
+			// Unmarshal the JSON data into the struct
+			var tleStruct TLEStructure
+			err = json.Unmarshal(raw, &tleStruct)
+			if err != nil {
+				fmt.Println("Error unmarshaling JSON:", err)
+				continue
+			}
+
+			printTle(tleStruct)
 		}
 
-		printTle(tleStruct)
-	}
+		// Visual Passes
 
-	// Visual Passes
+		if runVisualPasses {
+			raw, err := performVisualPasses(satelliteId)
+			if err != nil {
+				fmt.Println("Error performing Visual Passes:", err)
+				continue
+			}
 
-	if runVisualPasses {
-		raw, err := performVisualPasses(satelliteId)
-		if err != nil {
-			fmt.Println("Error performing Visual Passes:", err)
-			return
+			// Unmarshal the JSON data into the struct
+			var visualPassesStruct VisualPassesStructure
+			err = json.Unmarshal(raw, &visualPassesStruct)
+			if err != nil {
+				fmt.Println("Error unmarshaling JSON:", err)
+				return
+			}
+
+			printVisualPasses(visualPassesStruct)
+			fmt.Println()
 		}
-
-		// Unmarshal the JSON data into the struct
-		var visualPassesStruct VisualPassesStructure
-		err = json.Unmarshal(raw, &visualPassesStruct)
-		if err != nil {
-			fmt.Println("Error unmarshaling JSON:", err)
-			return
-		}
-
-		printVisualPasses(visualPassesStruct)
 	}
 }
 
